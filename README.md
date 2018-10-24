@@ -86,3 +86,39 @@ gcloud compute firewall-rules create \
   --target-tags puma-server \
   --description "Allow incoming traffic for #puma-server on tcp:9292"
 ```
+
+-----
+
+7.1. Create Reddit base image with packer
+```
+packer validate \
+  -var-file=variables.json \
+  ./ubuntu16.json
+
+packer build \
+  -var-file=variables.json \
+  ./ubuntu16.json
+```
+
+7.2. Create "baked" reddit image
+```
+packer validate \
+  -var-file=immutable-variables.json \
+  ./immutable.json
+
+packer build \
+  -var-file=immutable-variables.json \
+  ./immutable.json
+```
+
+7.3. Create reddit VM instance from baked image
+```
+### config-scripts/create-redditvm.sh
+gcloud compute instances create \
+  reddit-app-from-baked \
+  --image-family reddit-full \
+  --tags puma-server \
+  --boot-disk-size=10GB \
+  --machine-type=g1-small \
+  --restart-on-failure
+```
