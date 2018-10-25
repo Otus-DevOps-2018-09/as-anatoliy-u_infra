@@ -25,3 +25,64 @@ someinternalhost_IP = 10.132.0.3
 
 5.4. Install HTTPS certificate for Pritunl
 Just set "Lets Encrypt Domain" in "Settings" to <bastion_ip_addr>.sslip.io
+
+-----
+
+6.1. Reddit App test
+testapp_IP = 35.204.134.233
+testapp_port = 9292
+
+6.2. Reddit App - startup script
+```bash
+### startup-script.sh
+
+#!/bin/bash
+APPUSER=appuser
+COMPLETED=/tmp/setup-completed
+
+if [ -f $COMPLETED ]; then
+  exit 0
+fi
+
+# install ruby
+apt update && apt install -y ruby-full ruby-bundler build-essential
+
+# install mongodb
+apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv EA312927 && \
+bash -c 'echo "deb http://repo.mongodb.org/apt/ubuntu xenial/mongodb-org/3.2 multiverse" > /etc/apt/sources.list.d/mongodb-org-3.2.list' && \
+apt update && \
+apt install -y mongodb-org && \
+systemctl start mongod && \
+systemctl enable mongod
+
+# deploy
+cd /home/$APPUSER/
+git clone -b monolith https://github.com/express42/reddit.git && \
+cd reddit && \
+bundle install && \
+puma -d
+
+touch $COMPLETED
+```
+
+6.3. Reddit App - create instance with `gcloud` command
+```bash
+gcloud compute instances create \
+  reddit-app \
+  --boot-disk-size=10GB \
+  --image-family ubuntu-1604-lts \
+  --image-project=ubuntu-os-cloud \
+  --machine-type=g1-small \
+  --tags puma-server \
+  --restart-on-failure \
+  --metadata-from-file startup-script=startup-script.sh
+```
+
+6.4. Reddit App - create firewall rule for #puma-server
+```bash
+gcloud compute firewall-rules create \
+  default-puma-server \
+  --allow tcp:9292 \
+  --target-tags puma-server \
+  --description "Allow incoming traffic for #puma-server on tcp:9292"
+```
