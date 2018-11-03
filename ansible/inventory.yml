@@ -1,0 +1,21 @@
+all:
+  hosts:
+    reddit-app-stage:
+      ansible_host: 35.241.182.106
+    reddit-db-stage:
+      ansible_host: 35.233.16.80
+  children:
+    app:
+      hosts:
+        reddit-app-stage:
+    db:
+      hosts:
+        reddit-db-stage:
+    reddit:
+      hosts:
+        reddit-app-stage:
+        reddit-db-stage:
+    stage:
+      hosts:
+        reddit-app-stage:
+        reddit-db-stage:

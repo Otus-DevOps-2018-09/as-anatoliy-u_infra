@@ -13,7 +13,7 @@ locals {
 module "db" {
   source           = "../modules/db"
   name             = "${local.db_name}"
-  tags             = ["${local.db_name}"]
+  tags             = ["${local.db_name}", "${var.environment}"]
   source_tags      = ["${local.app_name}"]
   disk_image       = "${var.db_disk_image}"
   zone             = "${var.zone}"
@@ -24,7 +24,7 @@ module "db" {
 module "app" {
   source           = "../modules/app"
   name             = "${local.app_name}"
-  tags             = ["${local.app_name}"]
+  tags             = ["${local.app_name}", "${var.environment}"]
   disk_image       = "${var.app_disk_image}"
   zone             = "${var.zone}"
   public_key_path  = "${var.public_key_path}"
