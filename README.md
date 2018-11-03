@@ -154,3 +154,58 @@ Host reddit-app-01
   User appuser
   IdentityFile ~/.ssh/appuser
 ```
+
+-----
+
+9. Terraform-2
+Добавил уже существующий ресурс `firewall_ssh` в Terraform
+При выполнении `terraform apply` получил сообщение об ошибке, что такой ресурс уже существует
+Импортировал уже существующий ресурс `firewall_ssh` командой `terrform import`
+Создал описание двух VM - для основного приложени и базы данных
+Перенес конфигурацию в модули, дополнительно создал модуль `vpc`
+Настройки модулей вынес в переменные
+Проверил работу модуля `vpc` с различными значениями переменной `source_ranges`: все адреса, мой IP, чужой IP
+Создал два варианта развертывания инфраструктуры в каталогах `stage` и `prod` -- в первом открыт доступ к приложениию для всех IP, во втором -- только для моего IP
+Добавил модуль storage-bucket для хранения state-файлов terraform в облаке
+Проверил работу проекта при переносе в другую папку, где отсутствует файл `terraform.tfstate`, terraform при этом корректно работает
+При попытке одновременно запустить `terraform apply` (или `destroy`) получил сообщение об ошибке:
+```bash
+Error: Error locking state: Error acquiring the state lock: writing "gs://backend-stage/terraform/state/default.tflock" failed: googleapi: Error 412: Precondition Failed, conditionNotMet
+
+Terraform acquires a state lock to protect the state from being written by multiple users at the same time. Please resolve the issue above and try again. For most commands, you can disable locking with the "-lock=false" flag, but this is not recommended.
+```
+
+Доработал конфигурации `stage` и `prod` чтобы они могли выполняться
+одновременно и не мешать друг другу
+Добавил provisioners в модули для настройки базы и приложения.
+При этом следует учесть, что настройки mongodb по-умолчанию не разрашают доступ c внешних адресов. Для доступа необходимо править `/etc/mongod.conf` и рестартовать сервис (либо, как вариант исправить базовый образ reddit-db-base)
+Для `puma` добавил переменную окружения `DATABASE_URL` с помощью Terraform Template Provider `template_file` (либо, как вариант, можно передавать это значение аргументом для deploy-скрипта):
+```bash
+[Service]
+Environment="DATABASE_URL=${database_url}"
+```
+Пока не реализовал задание "Опционально можете реализовать отключение provisioner в зависимости от значения переменной". Насколько я виж
+у, в terraform нет "conditional flow" или другого стандартного спосо
+бо для этого, как вариант можно попробовать использовать count=1|0 в
+ зависимости от переданной переменной
+
+Пример использования:
+```bash
+cd terraform/
+cp terraform.tfvars.example terraform.tfvars
+# update terraform.tfvars
+
+cd stage/ # (или prod/)
+cp terraform.tfvars.example terraform.tfvars
+# update terraform.tfvars
+terraform plan -var-file=../terraform.tfvars
+terraform apply -var-file=../terraform.tfvars
+
+### Sample outputs:
+#
+# app_external_ip = 35.241.182.XXX
+# db_internal_ip = 10.132.0.2
+
+После этого можно зайти по адресу
+http://<app_external_ip>:9292
+и увидеть web-интерфейс приложения

@@ -1,4 +1,6 @@
 project = "your-project-id"
+environment = "stage"
+allow_source_ranges = ["0.0.0.0/0"]
 public_key_path = "~/.ssh/appuser.pub"
 private_key_path = "~/.ssh/appuser"
 app_disk_image = "reddit-app-base"
