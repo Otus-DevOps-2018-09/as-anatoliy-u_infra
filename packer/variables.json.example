@@ -1,0 +1,11 @@
+{
+  "project_id": "google-cloud-project-id",
+  "source_image_family": "ubuntu-1604-lts",
+  "image_description": "Image description",
+  "disk_size": "10",
+  "disk_type": "pd-standard",
+  "machine_type": "f1-micro",
+  "network": "default",
+  "tags": "array,of,strings"
+}
+
