@@ -122,3 +122,35 @@ gcloud compute instances create \
   --machine-type=g1-small \
   --restart-on-failure
 ```
+
+-----
+
+8.1. Adding multiple SSH keys to GCP Compute Engine metadata with Terraform
+Using resource "google_compute_project_metadata_item" with key = "ssh-keys"
+will overwrite all previously added SSH keys in project,
+including those that were added manually
+So, here is working example to add multiple SSH keys:
+```
+resource "google_compute_project_metadata_item" "default" {
+  key = "ssh-keys"
+  value = "appuser1:${file(var.public_key_path)}appuser2:${file(var.public_key_path)}"
+}
+```
+
+8.2. Problem with describing similar compute instances as separate resources is code duplication
+Instead we can use `count = {...}` to create multiple instances
+
+# Here is how to output IPs of instances with count > 1
+```
+output "app_ips" {
+  value = "${join(", ",google_compute_instance.app.*.network_interface.0.access_config.0.assigned_nat_ip)}"
+}
+```
+
+8.3. Sample SSH config to access Reddit App
+```
+Host reddit-app-01
+  HostName <reddit-app-host-name>
+  User appuser
+  IdentityFile ~/.ssh/appuser
+```
