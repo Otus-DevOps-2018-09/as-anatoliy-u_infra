@@ -209,3 +209,36 @@ terraform apply -var-file=../terraform.tfvars
 После этого можно зайти по адресу
 http://<app_external_ip>:9292
 и увидеть web-интерфейс приложения
+
+-----
+
+10. Ansible-1
+
+Установил `python 2.7.15`, `ansible 2.7.1` и `pip 9.0.1`
+Добавил дополнительные теги для инстансов и запуситил `terraform apply` в папке `stage`
+В результате создались две VM с тэгами:
+1. reddit-app-stage, tags: [reddit, stage, app, reddit-app-stage]
+2. reddit-db-stage,  tags: [reddit, stage, db,  reddit-db-stage]
+Создал вручную текстовый inventory файл для ansible с хостами и группами и попробовал выполнить различные команды
+Создал inventory.yml в формате YAML
+Реализовал простой плейбук `clone.yml` для выполнения `git clone`:
+`ansible-playbook clone.yml`
+Если репозитарий уже существует на сервере, то повторное выполнение плейбука завершится с сообщением:
+`appserver : ok=2 changed=0`
+Если удалить папку с клонированным репозитарием и запуситить плейбук еще раз, то теперь команда выполнится и мы увидим сообщение
+`appserver : ok=2 changed=1`
+
+Для выполнения задания со звездочкой был написан простой скрипт на python, который обрабатывает вывод команды `gcloud compute instances list --format=json` и возвращает список хостов в формате ansible inventory JSON, например:
+
+```json
+# ./dynamic-inventory.sh
+{"all": {"hosts": {"reddit-app-stage": {"ansible_host": "35.241.XXX.XXX"}, "reddit-db-stage": {"ansible_host": "35.233.XXX.XXX"}}, "children": {"app": {"hosts": {"reddit-app-stage": null}}, "db": {"hosts": {"reddit-db-stage": null}}, "reddit": {"hosts": {"reddit-app-stage": null, "reddit-db-stage": null}}, "stage": {"hosts": {"reddit-app-stage": null, "reddit-db-stage": null}}}}}
+```
+
+В результате я могу применять команды ansible как к конкретным хостам, так и к различным группам, например:
+```bash
+ansible reddit -m ping
+ansible stage -m ping
+ansible db -m ping
+ansible reddit-app-stage -m ping
+```
