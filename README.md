@@ -184,9 +184,7 @@ Terraform acquires a state lock to protect the state from being written by multi
 [Service]
 Environment="DATABASE_URL=${database_url}"
 ```
-Пока не реализовал задание "Опционально можете реализовать отключение provisioner в зависимости от значения переменной". Насколько я виж
-у, в terraform нет "conditional flow" или другого стандартного спосо
-бо для этого, как вариант можно попробовать использовать count=1|0 в
+Пока не реализовал задание "Опционально можете реализовать отключение provisioner в зависимости от значения переменной". Насколько я вижу, в terraform нет "conditional flow" или другого стандартного способа для этого, как вариант можно попробовать использовать count=1|0 в
  зависимости от переданной переменной
 
 Пример использования:
@@ -242,3 +240,48 @@ ansible stage -m ping
 ansible db -m ping
 ansible reddit-app-stage -m ping
 ```
+
+11. Ansible-2
+
+Создал `playbook` для `ansible`
+Создал задачу для настройки MongoDB с использованием шаблона и переменных и handlers
+Проверил и применил `playbook`
+Аналогично создал задачу для настройки puma в том же playbook-е
+Аналогично создал задачу для деплоя Reddit App
+Применил плейбук и проверил работу приложения
+Создал еще один плейбук, в котором разбил сценарий на отдельные сценарии для MonboDB и для App
+Пересоздал VM (`terraform destroy` / `apply`) и применил новый плейбук
+Убедился что приложение работает
+Разделил установку и настройку приложения и базы на несколько плейбуков: `app.yml`, `db.yml` и `deploy.yml`
+В файле `site.yml` импортировал указанные плейбуки командой `import_playbook`
+Пересоздал VM (`terraform destroy` / `apply`) и применил новый `site.yml`, убедился что приложение работает
+
+Для задания со зведочкой установил и настроил `gce.py`
+Добавил ключи аутентификации `ansible/otus-devops-*.json` в `.gitignore`
+Однако такой вариант мне не очень понравился, т.к. в случае использования `gce.py` для ansible доступны только имена VM (например, `reddit-app-stage`) и не учитываются тэги
+Если использовать самописный `dynamic-inventory.sh`, то можно применять команды ansible как к конкретным хостам, так и к различным группам (задаются тэгами при создании VM), например:
+```bash
+ansible reddit -m ping
+ansible stage -m ping
+ansible db -m ping
+ansible reddit-app-stage -m ping
+```
+
+Изменил провижининг в Packer -- вместо shell-скриптов используются плейбуки ansible
+Создал новые образы VM
+Если сначала выполнить `terraform destroy`, то packer не сможет создать образы, т.к. удаляется правило `google_compute_firewall.firewall_ssh`
+
+```bash
+packer build \
+  -var-file=./packer/variables.json \
+  -var="image_description='Reddit App Image'" \
+  ./packer/app.json
+
+packer build \
+  -var-file=./packer/variables.json \
+  -var="image_description='Reddit DB Image'" \
+  ./packer/db.json
+```
+
+Пересоздал инфраструктуру с использованием новых образов (`terraform destroy` / `apply`)
+Запустил плейбук `ansible-playbook site.yml` и убедился что приложение работает

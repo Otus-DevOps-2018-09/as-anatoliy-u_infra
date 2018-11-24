@@ -6,3 +6,7 @@ packer/immutable-variables.json
 *.tfstate.backup
 *.tfvars
 .terraform/
+
+*.retry
+
+ansible/otus-devops-*.json

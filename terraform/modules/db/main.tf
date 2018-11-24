@@ -26,19 +26,19 @@ resource "google_compute_instance" "db" {
     ssh-keys = "appuser:${file(var.public_key_path)}"
   }
 
-  connection {
-    type        = "ssh"
-    user        = "appuser"
-    agent       = false
-    private_key = "${file(var.private_key_path)}"
-  }
+#  connection {
+#    type        = "ssh"
+#    user        = "appuser"
+#    agent       = false
+#    private_key = "${file(var.private_key_path)}"
+#  }
 
-  provisioner "remote-exec" {
-    inline = [
-      "sudo sed -i 's/ *bindIp:.*/  bindIp: ${local.address}/' /etc/mongod.conf",
-      "sudo systemctl restart mongod",
-    ]
-  }
+#  provisioner "remote-exec" {
+#    inline = [
+#      "sudo sed -i 's/ *bindIp:.*/  bindIp: ${local.address}/' /etc/mongod.conf",
+#      "sudo systemctl restart mongod",
+#    ]
+#  }
 }
 
 resource "google_compute_address" "db_external_ip" {
