@@ -24,4 +24,4 @@ for instance in instances:
 
       inventory['all']['children'][tag]['hosts'][host_name] = None;
 
-print json.dumps(inventory);
+print json.dumps(inventory, indent=2);

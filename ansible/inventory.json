@@ -1,1 +1,36 @@
-{"all": {"hosts": {"reddit-app-stage": {"ansible_host": "35.241.182.106"}, "reddit-db-stage": {"ansible_host": "35.233.16.80"}}, "children": {"app": {"hosts": {"reddit-app-stage": null}}, "db": {"hosts": {"reddit-db-stage": null}}, "reddit": {"hosts": {"reddit-app-stage": null, "reddit-db-stage": null}}, "stage": {"hosts": {"reddit-app-stage": null, "reddit-db-stage": null}}}}}
+{
+  "all": {
+    "hosts": {
+      "reddit-app-stage": {
+        "ansible_host": "35.233.16.80"
+      }, 
+      "reddit-db-stage": {
+        "ansible_host": "35.195.153.56"
+      }
+    }, 
+    "children": {
+      "app": {
+        "hosts": {
+          "reddit-app-stage": null
+        }
+      }, 
+      "db": {
+        "hosts": {
+          "reddit-db-stage": null
+        }
+      }, 
+      "reddit": {
+        "hosts": {
+          "reddit-app-stage": null, 
+          "reddit-db-stage": null
+        }
+      }, 
+      "stage": {
+        "hosts": {
+          "reddit-app-stage": null, 
+          "reddit-db-stage": null
+        }
+      }
+    }
+  }
+}
